@@ -1,7 +1,4 @@
 name: BountifulAPI
 description: BountifulAPI
 main: com.connorlinfoot.bountifulapi.BountifulAPI
-version: 1.0
-commands:
-  title:
-    description: Minecraft 1.8 Title Feature
+version: 1.0.1
