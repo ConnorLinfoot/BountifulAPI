@@ -8,7 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -16,6 +18,7 @@ import java.lang.reflect.Method;
 
 
 public class BountifulAPI extends JavaPlugin implements Listener {
+    public static Plugin plugin;
 
     @Deprecated
     public static void sendTitle(Player player, Integer fadeIn, Integer stay, Integer fadeOut, String message) {
@@ -59,6 +62,11 @@ public class BountifulAPI extends JavaPlugin implements Listener {
     }
 
     public static void sendTitle(Player player, Integer fadeIn, Integer stay, Integer fadeOut, String title, String subtitle) {
+        TitleSendEvent titleSendEvent = new TitleSendEvent(player, title, subtitle);
+        Bukkit.getPluginManager().callEvent(titleSendEvent);
+        if (titleSendEvent.isCancelled())
+            return;
+
         try {
             if (title != null) {
                 Object enumTitle = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE").get(null);
@@ -87,6 +95,11 @@ public class BountifulAPI extends JavaPlugin implements Listener {
         if (footer == null) footer = "";
         footer = ChatColor.translateAlternateColorCodes('&', footer);
 
+        TabTitleSendEvent tabTitleSendEvent = new TabTitleSendEvent(player, header, footer);
+        Bukkit.getPluginManager().callEvent(tabTitleSendEvent);
+        if (tabTitleSendEvent.isCancelled())
+            return;
+
         header = header.replaceAll("%player%", player.getDisplayName());
         footer = footer.replaceAll("%player%", player.getDisplayName());
 
@@ -105,6 +118,11 @@ public class BountifulAPI extends JavaPlugin implements Listener {
     }
 
     public static void sendActionBar(Player player, String message) {
+        ActionBarMessageEvent actionBarMessageEvent = new ActionBarMessageEvent(player, message);
+        Bukkit.getPluginManager().callEvent(actionBarMessageEvent);
+        if (actionBarMessageEvent.isCancelled())
+            return;
+
         String nmsver = Bukkit.getServer().getClass().getPackage().getName();
         nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);
         try {
@@ -136,20 +154,50 @@ public class BountifulAPI extends JavaPlugin implements Listener {
         }
     }
 
+    public static void sendActionBar(final Player player, final String message, int duration) {
+        sendActionBar(player, message);
+
+        if (duration >= 0) {
+            // Sends empty message at the end of the duration. Allows messages shorter than 3 seconds, ensures precision.
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    sendActionBar(player, "");
+                }
+            }.runTaskLater(plugin, duration + 1);
+        }
+
+        // Re-sends the messages every 3 seconds so it doesn't go away from the player's screen.
+        while (duration > 60) {
+            duration -= 60;
+            int sched = duration % 60;
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    sendActionBar(player, message);
+                }
+            }.runTaskLater(plugin, (long) sched);
+        }
+    }
+
+    public static void sendActionBarToAllPlayers(String message) {
+        sendActionBarToAllPlayers(message, -1);
+    }
+
+    public static void sendActionBarToAllPlayers(String message, int duration) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            sendActionBar(p, message, duration);
+        }
+    }
+
     public void onEnable() {
+        plugin = this;
         getConfig().options().copyDefaults(true);
         saveConfig();
         Server server = getServer();
         ConsoleCommandSender console = server.getConsoleSender();
 
-        console.sendMessage("");
-        console.sendMessage(ChatColor.BLUE + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-        console.sendMessage("");
-        console.sendMessage(ChatColor.AQUA + getDescription().getName());
-        console.sendMessage(ChatColor.AQUA + "Version " + getDescription().getVersion());
-        console.sendMessage("");
-        console.sendMessage(ChatColor.BLUE + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-        console.sendMessage("");
+        console.sendMessage(ChatColor.AQUA + getDescription().getName() + " V" + getDescription().getVersion() + " has been enabled!");
 
         Bukkit.getPluginManager().registerEvents(this, this);
     }
@@ -163,10 +211,6 @@ public class BountifulAPI extends JavaPlugin implements Listener {
         if (getConfig().getBoolean("Tab Header Enabled")) {
             sendTabTitle(event.getPlayer(), getConfig().getString("Tab Header Message"), getConfig().getString("Tab Footer Message"));
         }
-    }
-
-    public void onDisable() {
-        getLogger().info(getDescription().getName() + " has been disabled!");
     }
 
 }

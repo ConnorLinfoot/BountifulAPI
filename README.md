@@ -1,7 +1,7 @@
 BountifulAPI
 =====================
 
-Spigot Page/More Info: COMING SOON
+Spigot Page/More Info: https://www.spigotmc.org/resources/bountifulapi.1394/
 
 
 Made From:
