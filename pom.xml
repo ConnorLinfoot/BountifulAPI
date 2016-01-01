@@ -14,7 +14,7 @@
 
     <build>
         <defaultGoal>clean package install</defaultGoal>
-        <finalName>ActionBarAPI-${project.version}</finalName>
+        <finalName>BountifulAPI-${project.version}</finalName>
         <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
         <resources>
             <resource>

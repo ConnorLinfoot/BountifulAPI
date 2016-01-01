@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -18,7 +17,7 @@ import java.lang.reflect.Method;
 
 
 public class BountifulAPI extends JavaPlugin implements Listener {
-    public static Plugin plugin;
+    public static BountifulAPI bountifulAPI;
 
     @Deprecated
     public static void sendTitle(Player player, Integer fadeIn, Integer stay, Integer fadeOut, String message) {
@@ -68,24 +67,49 @@ public class BountifulAPI extends JavaPlugin implements Listener {
             return;
 
         try {
+            Object e;
+            Object chatTitle;
+            Object chatSubtitle;
+            Constructor subtitleConstructor;
+            Object titlePacket;
+            Object subtitlePacket;
+
             if (title != null) {
-                Object enumTitle = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE").get(null);
-                Object chatTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class).invoke(null, "{\"text\":\"" + title + "\"}");
-                Constructor<?> titleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), int.class, int.class, int.class);
-                Object titlePacket = titleConstructor.newInstance(enumTitle, chatTitle, fadeIn, stay, fadeOut);
+                // Times packets
+                e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES").get((Object) null);
+                chatTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + title + "\"}"});
+                subtitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(new Class[]{getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), Integer.TYPE, Integer.TYPE, Integer.TYPE});
+                titlePacket = subtitleConstructor.newInstance(new Object[]{e, chatTitle, fadeIn, stay, fadeOut});
+                sendPacket(player, titlePacket);
+
+                e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE").get((Object) null);
+                chatTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + title + "\"}"});
+                subtitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(new Class[]{getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent")});
+                titlePacket = subtitleConstructor.newInstance(new Object[]{e, chatTitle});
                 sendPacket(player, titlePacket);
             }
 
             if (subtitle != null) {
-                Object enumSubtitle = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE").get(null);
-                Object chatSubtitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class).invoke(null, "{\"text\":\"" + subtitle + "\"}");
-                Constructor<?> subtitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), int.class, int.class, int.class);
-                Object subtitlePacket = subtitleConstructor.newInstance(enumSubtitle, chatSubtitle, fadeIn, stay, fadeOut);
+                // Times packets
+                e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES").get((Object) null);
+                chatSubtitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + title + "\"}"});
+                subtitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(new Class[]{getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), Integer.TYPE, Integer.TYPE, Integer.TYPE});
+                subtitlePacket = subtitleConstructor.newInstance(new Object[]{e, chatSubtitle, fadeIn, stay, fadeOut});
+                sendPacket(player, subtitlePacket);
+
+                e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE").get((Object) null);
+                chatSubtitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + subtitle + "\"}"});
+                subtitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(new Class[]{getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), Integer.TYPE, Integer.TYPE, Integer.TYPE});
+                subtitlePacket = subtitleConstructor.newInstance(new Object[]{e, chatSubtitle, fadeIn, stay, fadeOut});
                 sendPacket(player, subtitlePacket);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception var11) {
+            var11.printStackTrace();
         }
+    }
+
+    public static void clearTitle(Player player) {
+        sendTitle(player, 0, 0, 0, "", "");
     }
 
     public static void sendTabTitle(Player player, String header, String footer) {
@@ -164,7 +188,7 @@ public class BountifulAPI extends JavaPlugin implements Listener {
                 public void run() {
                     sendActionBar(player, "");
                 }
-            }.runTaskLater(plugin, duration + 1);
+            }.runTaskLater(bountifulAPI, duration + 1);
         }
 
         // Re-sends the messages every 3 seconds so it doesn't go away from the player's screen.
@@ -176,7 +200,7 @@ public class BountifulAPI extends JavaPlugin implements Listener {
                 public void run() {
                     sendActionBar(player, message);
                 }
-            }.runTaskLater(plugin, (long) sched);
+            }.runTaskLater(bountifulAPI, (long) sched);
         }
     }
 
@@ -191,14 +215,12 @@ public class BountifulAPI extends JavaPlugin implements Listener {
     }
 
     public void onEnable() {
-        plugin = this;
+        bountifulAPI = this;
         getConfig().options().copyDefaults(true);
         saveConfig();
         Server server = getServer();
         ConsoleCommandSender console = server.getConsoleSender();
-
         console.sendMessage(ChatColor.AQUA + getDescription().getName() + " V" + getDescription().getVersion() + " has been enabled!");
-
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
