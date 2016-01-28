@@ -75,6 +75,8 @@ public class BountifulAPI extends JavaPlugin implements Listener {
             Object subtitlePacket;
 
             if (title != null) {
+                title = ChatColor.translateAlternateColorCodes('&',title);
+                title = title.replaceAll("%player%",player.getDisplayName());
                 // Times packets
                 e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES").get((Object) null);
                 chatTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + title + "\"}"});
@@ -90,6 +92,8 @@ public class BountifulAPI extends JavaPlugin implements Listener {
             }
 
             if (subtitle != null) {
+                subtitle = ChatColor.translateAlternateColorCodes('&',subtitle);
+                subtitle = subtitle.replaceAll("%player%",player.getDisplayName());
                 // Times packets
                 e = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES").get((Object) null);
                 chatSubtitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", new Class[]{String.class}).invoke((Object) null, new Object[]{"{\"text\":\"" + title + "\"}"});
