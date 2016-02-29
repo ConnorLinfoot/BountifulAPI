@@ -156,10 +156,10 @@ public class BountifulAPI extends JavaPlugin implements Listener {
         try {
             Class<?> c1 = Class.forName("org.bukkit.craftbukkit." + nmsver + ".entity.CraftPlayer");
             Object p = c1.cast(player);
-            Object ppoc = null;
+            Object ppoc;
             Class<?> c4 = Class.forName("net.minecraft.server." + nmsver + ".PacketPlayOutChat");
             Class<?> c5 = Class.forName("net.minecraft.server." + nmsver + ".Packet");
-            if (nmsver.equalsIgnoreCase("v1_8_R1") || !nmsver.startsWith("v1_8_")) {
+            if ((nmsver.equalsIgnoreCase("v1_8_R1") || !nmsver.startsWith("v1_8_")) && !nmsver.startsWith("v1_9_")) {
                 Class<?> c2 = Class.forName("net.minecraft.server." + nmsver + ".ChatSerializer");
                 Class<?> c3 = Class.forName("net.minecraft.server." + nmsver + ".IChatBaseComponent");
                 Method m3 = c2.getDeclaredMethod("a", new Class<?>[]{String.class});
