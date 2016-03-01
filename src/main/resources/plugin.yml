@@ -1,4 +1,4 @@
 name: BountifulAPI
 description: BountifulAPI
 main: com.connorlinfoot.bountifulapi.BountifulAPI
-version: $(project.verison}
+version: ${project.version}
