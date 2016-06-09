@@ -18,6 +18,8 @@ import java.lang.reflect.Method;
 
 public class BountifulAPI extends JavaPlugin implements Listener {
 	public static BountifulAPI bountifulAPI;
+	private static boolean useOldMethods = false;
+	public static String nmsver;
 
 	@Deprecated
 	public static void sendTitle(Player player, Integer fadeIn, Integer stay, Integer fadeOut, String message) {
@@ -151,15 +153,13 @@ public class BountifulAPI extends JavaPlugin implements Listener {
 		if (actionBarMessageEvent.isCancelled())
 			return;
 
-		String nmsver = Bukkit.getServer().getClass().getPackage().getName();
-		nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);
 		try {
 			Class<?> c1 = Class.forName("org.bukkit.craftbukkit." + nmsver + ".entity.CraftPlayer");
 			Object p = c1.cast(player);
 			Object ppoc;
 			Class<?> c4 = Class.forName("net.minecraft.server." + nmsver + ".PacketPlayOutChat");
 			Class<?> c5 = Class.forName("net.minecraft.server." + nmsver + ".Packet");
-			if ((nmsver.equalsIgnoreCase("v1_8_R1") || !nmsver.startsWith("v1_8_")) && !nmsver.startsWith("v1_9_")) {
+			if (useOldMethods) {
 				Class<?> c2 = Class.forName("net.minecraft.server." + nmsver + ".ChatSerializer");
 				Class<?> c3 = Class.forName("net.minecraft.server." + nmsver + ".IChatBaseComponent");
 				Method m3 = c2.getDeclaredMethod("a", new Class<?>[]{String.class});
@@ -253,6 +253,13 @@ public class BountifulAPI extends JavaPlugin implements Listener {
 
 		Server server = getServer();
 		ConsoleCommandSender console = server.getConsoleSender();
+
+		nmsver = Bukkit.getServer().getClass().getPackage().getName();
+		nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);
+
+		if (nmsver.equalsIgnoreCase("v1_8_R1") || nmsver.equalsIgnoreCase("v1_7_")) { // Not sure if 1_7 works for the protocol hack?
+			useOldMethods = true;
+		}
 		console.sendMessage(ChatColor.AQUA + getDescription().getName() + " V" + getDescription().getVersion() + " has been enabled!");
 
 		if (updateMessage != null)
