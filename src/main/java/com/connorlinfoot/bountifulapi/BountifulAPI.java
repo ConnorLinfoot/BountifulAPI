@@ -138,12 +138,21 @@ public class BountifulAPI extends JavaPlugin implements Listener {
             Object tabFooter = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class).invoke(null, "{\"text\":\"" + footer + "\"}");
             Constructor<?> titleConstructor = getNMSClass("PacketPlayOutPlayerListHeaderFooter").getConstructor();
             Object packet = titleConstructor.newInstance();
-            Field aField = packet.getClass().getDeclaredField("a");
-            aField.setAccessible(true);
-            aField.set(packet, tabHeader);
-            Field bField = packet.getClass().getDeclaredField("b");
-            bField.setAccessible(true);
-            bField.set(packet, tabFooter);
+            try {
+                Field aField = packet.getClass().getDeclaredField("a");
+                aField.setAccessible(true);
+                aField.set(packet, tabHeader);
+                Field bField = packet.getClass().getDeclaredField("b");
+                bField.setAccessible(true);
+                bField.set(packet, tabFooter);
+            } catch (Exception e) {
+                Field aField = packet.getClass().getDeclaredField("header");
+                aField.setAccessible(true);
+                aField.set(packet, tabHeader);
+                Field bField = packet.getClass().getDeclaredField("footer");
+                bField.setAccessible(true);
+                bField.set(packet, tabFooter);
+            }
             sendPacket(player, packet);
         } catch (Exception ex) {
             ex.printStackTrace();
